@@ -1,8 +1,9 @@
-import { createContext, useState } from "react";
-import { signInRequest } from "../services/fakeBackend";
-import { setCookie } from 'nookies'; // LocalStorage e document.cookies por vezes pode dar problema no next, por existir a possiBilidade de usarmos SSR
+import { createContext, useEffect, useState } from "react";
+import { recoverUserInformation, signInRequest } from "../services/fakeBackend";
+import { setCookie, parseCookies } from 'nookies'; // LocalStorage e document.cookies por vezes pode dar problema no next, por existir a possiBilidade de usarmos SSR
 
 import Router from 'next/router';
+import { api } from "../services/api";
 
 interface SignInProps {
     email: string;
@@ -25,9 +26,20 @@ export const AuthContext = createContext({} as AuthContextProps);
 
 
 export function AuthProvider ({ children }) {
-    const [ user, setUser ] = useState<UserProps | null>(null);
+    const [ user, setUser ] = useState< UserProps | null >(null);
 
     const isAuthenticated = !!user;
+
+    useEffect(() => {
+        const { 'nextauth.token': token } = parseCookies();
+
+        if(token){
+            recoverUserInformation().then(response => {
+                setUser(response.user);
+            })
+        }
+
+    }, [])
 
 
     async function signIn( { email, password }: SignInProps ){
@@ -39,7 +51,11 @@ export function AuthProvider ({ children }) {
             maxAge: 60 * 60 * 1 // 1 hour
         })
 
+        api.defaults.headers['Authorization'] = `Bearer ${token}`
+
         setUser(user);
+        console.log("FUNCAO SIGNIN CHAMADA");
+        console.log('este eh o user', user)
 
         Router.push('/dashboard')
     }

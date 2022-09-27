@@ -21,3 +21,13 @@ export async function signInRequest(data: SignInRequestProps){
     }
 
 }
+
+export async function recoverUserInformation(token ?: string){
+    return {
+        user: {
+            name: 'Emanuel',
+            email: 'emanuel@gmail.com',
+            avatar_url: 'https://github.com/Emanuel321-DEV.png'
+        }
+    }
+}

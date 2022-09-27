@@ -1,7 +1,12 @@
-import { Fragment } from 'react'
+import { Fragment, useContext, useEffect } from 'react'
 import Head from 'next/head'
 import { Disclosure, Menu, Transition } from '@headlessui/react'
 import { BellIcon, MenuIcon, XIcon } from '@heroicons/react/outline'
+import { AuthContext } from '../contexts/AuthContext'
+import { api } from '../services/api'
+import { GetServerSideProps } from 'next'
+
+import { parseCookies } from 'nookies';
 
 const navigation = ['Dashboard', 'Team', 'Projects', 'Calendar', 'Reports']
 const profile = ['Your Profile', 'Settings']
@@ -11,6 +16,14 @@ function classNames(...classes) {
 }
 
 export default function Dashboard() {
+  const { user } = useContext(AuthContext);
+
+  console.log("este eh o user", user)
+
+  useEffect(() => {
+    api.get('/users')
+  }, [])
+
   return (
     <div>
       <Head>
@@ -69,7 +82,7 @@ export default function Dashboard() {
                               <span className="sr-only">Open user menu</span>
                               <img
                                 className="h-8 w-8 rounded-full"
-                                src="https://github.com/diego3g.png"
+                                src={user?.avatar_url}
                                 alt=""
                               />
                             </Menu.Button>
@@ -158,7 +171,7 @@ export default function Dashboard() {
                   <div className="flex-shrink-0">
                     <img
                       className="h-10 w-10 rounded-full"
-                      src="https://github.com/diego3g.png"
+                      src={user?.avatar_url}
                       alt=""
                     />
                   </div>
@@ -210,4 +223,26 @@ export default function Dashboard() {
       </main>
     </div>
   )
+}
+
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const {['nextauth.token']: token} = parseCookies(context);
+
+
+  if(!token){
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false
+      }
+    }
+  }
+
+  return {
+    props: {
+
+    }
+  }
+
 }
